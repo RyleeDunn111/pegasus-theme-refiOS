@@ -1,5 +1,5 @@
-// Pegasus Frontend - Flixnet theme (Kiosk Optimized Version)
-// Modified for P-Stream / Moonlight centered layout
+// Pegasus Frontend - Flixnet theme (Kiosk Optimized)
+// Centered layout for P-Stream and Moonlight
 
 import QtQuick 2.7
 import QtGraphicalEffects 1.12
@@ -12,65 +12,63 @@ FocusScope {
     FontLoader { id: roboto_light; source: "assets/fonts/Roboto-Light.ttf"}
     FontLoader { id: roboto_thin; source: "assets/fonts/Roboto-Thin.ttf"}
 
-    // Grid constants optimized for 4K
+    // Layout constants
     readonly property real cellRatio: 16 / 9
-    readonly property int cellHeight: vpx(180) // Slightly taller for 4K visibility
+    readonly property int cellHeight: vpx(150)
     readonly property int cellWidth: cellHeight * cellRatio
-    readonly property int cellSpacing: vpx(20)
+    readonly property int cellSpacing: vpx(15)
     readonly property int cellPaddedWidth: cellWidth + cellSpacing
 
-    // UI Labels
-    readonly property int labelFontSize: vpx(22)
-    readonly property int labelHeight: labelFontSize * 3
+    readonly property int labelFontSize: vpx(20)
+    readonly property int labelHeight: labelFontSize * 2.5
 
     Rectangle {
         anchors.fill: parent
-        color: "#00050f" // Deep base color
+        color: "#00050f"
 
-        // Premium background gradient
         RadialGradient {
             anchors.fill: parent
-            horizontalOffset: vpx(-200)
-            verticalOffset: vpx(-100)
+            horizontalOffset: vpx(-450)
+            verticalOffset: vpx(-250)
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "#0a1f2c" }
-                GradientStop { position: 0.6; color: "#07131d" }
-                GradientStop { position: 1.0; color: "#00050f" }
+                GradientStop { position: 0.1; color: "#051720" }
+                GradientStop { position: 0.5; color: "#07131d" }
+                GradientStop { position: 1; color: "#00050f" }
             }
         }
 
-        // Backdrops with fallback logic
+        // Full-width background art
         Screenshot {
-            id: backgroundArt
-            game: collectionAxis.currentItem.currentGame
-            anchors.fill: parent
-            opacity: 0.4 // Dimmed for readability
-            // Fallback to a default if no screenshot exists
-            source: (game && game.assets.background) ? game.assets.background : "assets/images/default_bg.jpg"
-            fillMode: Image.PreserveAspectCrop
-        }
-
-        // Center-aligned Game Details
-        Details {
             game: collectionAxis.currentItem.currentGame
             anchors {
                 top: parent.top
-                topMargin: vpx(100)
                 left: parent.left
                 right: parent.right
                 bottom: collectionAxis.top
             }
-            // Ensure child components in Details.qml are also centered if possible
         }
 
-        // Main Vertical Axis
+        // Centered details section
+        Details {
+            game: collectionAxis.currentItem.currentGame
+            anchors {
+                top: parent.top
+                topMargin: vpx(80)
+                left: parent.left
+                right: parent.right
+                bottom: collectionAxis.top
+                bottomMargin: labelHeight
+            }
+        }
+
+        // Vertical collection list (Centers your apps row)
         PathView {
             id: collectionAxis
 
             width: parent.width
-            height: labelHeight + cellHeight + vpx(50)
+            height: labelHeight + cellHeight + vpx(20)
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: vpx(100)
+            anchors.bottomMargin: vpx(60)
 
             model: api.collections
             delegate: collectionAxisDelegate
@@ -113,10 +111,10 @@ FocusScope {
                 height: labelHeight + cellHeight
 
                 visible: PathView.onPath
-                opacity: PathView.isCurrentItem ? 1.0 : 0.2
-                Behavior on opacity { NumberAnimation { duration: 200 } }
+                opacity: PathView.isCurrentItem ? 1.0 : 0.3
+                Behavior on opacity { NumberAnimation { duration: 150 } }
 
-                // Centered Collection Name
+                // Collection title centered
                 Text {
                     text: modelData.name || modelData.shortName
                     height: labelHeight
@@ -128,14 +126,13 @@ FocusScope {
                     color: "white"
                     font {
                         pixelSize: labelFontSize
-                        family: roboto_light.name
+                        family: "Roboto Light" // Uses fallback if loader fails
                         bold: true
                         capitalization: Font.AllUppercase
-                        letterSpacing: 2
                     }
                 }
 
-                // Horizontal Game Carousel (Centered)
+                // Horizontal Carousel (Static path for two centered items)
                 PathView {
                     id: gameAxis
                     width: parent.width
@@ -153,23 +150,19 @@ FocusScope {
 
                     readonly property var currentGame: games.get(currentIndex)
 
-                    // FIXED: This prevents the "swapping" bounce for 2 items
-                    pathItemCount: 5
-
+                    // Creates a path that sits perfectly centered on your Vizio
+                    pathItemCount: 3
                     path: Path {
-                        // Math to start the path centered
-                        startX: (gameAxis.width * 0.5) - (cellPaddedWidth * (gameAxis.currentIndex))
+                        startX: (gameAxis.width * 0.5) - cellPaddedWidth
                         startY: cellHeight * 0.5
                         PathLine {
-                            x: gameAxis.path.startX + (cellPaddedWidth * (gameAxis.model.count - 1))
+                            x: gameAxis.path.startX + (cellPaddedWidth * 2)
                             y: gameAxis.path.startY
                         }
                     }
 
                     snapMode: PathView.SnapOneItem
                     highlightRangeMode: PathView.StrictlyEnforceRange
-
-                    // Force the active app to stay in the exact center of the Vizio
                     preferredHighlightBegin: 0.5
                     preferredHighlightEnd: 0.5
                 }
