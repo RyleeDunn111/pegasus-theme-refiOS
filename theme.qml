@@ -1,5 +1,5 @@
 // Pegasus Frontend - Flixnet theme (Kiosk Optimized)
-// Centered layout for P-Stream and Moonlight
+// Ultra-Minimalist centered layout for P-Stream and Moonlight
 
 import QtQuick 2.7
 import QtGraphicalEffects 1.12
@@ -8,19 +8,12 @@ FocusScope {
     id: root
     focus: true
 
-    // Load local fonts
-    FontLoader { id: roboto_light; source: "assets/fonts/Roboto-Light.ttf"}
-    FontLoader { id: roboto_thin; source: "assets/fonts/Roboto-Thin.ttf"}
-
-    // Layout constants
+    // Grid constants
     readonly property real cellRatio: 16 / 9
-    readonly property int cellHeight: vpx(150)
+    readonly property int cellHeight: vpx(200)
     readonly property int cellWidth: cellHeight * cellRatio
-    readonly property int cellSpacing: vpx(15)
+    readonly property int cellSpacing: vpx(30)
     readonly property int cellPaddedWidth: cellWidth + cellSpacing
-
-    readonly property int labelFontSize: vpx(20)
-    readonly property int labelHeight: labelFontSize * 2.5
 
     Rectangle {
         anchors.fill: parent
@@ -37,60 +30,35 @@ FocusScope {
             }
         }
 
-        // Full-width background art
+        // Background art (No labels/details on top)
         Screenshot {
             game: collectionAxis.currentItem.currentGame
-            anchors {
-                top: parent.top
-                left: parent.left
-                right: parent.right
-                bottom: collectionAxis.top
-            }
+            anchors.fill: parent
+            opacity: 0.3
         }
 
-        // Centered details section
-        Details {
-            game: collectionAxis.currentItem.currentGame
-            anchors {
-                top: parent.top
-                topMargin: vpx(80)
-                left: parent.left
-                right: parent.right
-                bottom: collectionAxis.top
-                bottomMargin: labelHeight
-            }
-        }
-
-        // Vertical collection list (Centers your apps row)
+        // Main App Container - Centered Vertically and Horizontally
         PathView {
             id: collectionAxis
 
             width: parent.width
-            height: labelHeight + cellHeight + vpx(20)
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: vpx(60)
+            height: cellHeight
+            anchors.centerIn: parent // This centers the whole menu on the screen
 
             model: api.collections
             delegate: collectionAxisDelegate
 
-            pathItemCount: 3
+            pathItemCount: 1
             path: Path {
                 startX: collectionAxis.width * 0.5
-                startY: 0
+                startY: collectionAxis.height * 0.5
                 PathLine {
                     x: collectionAxis.width * 0.5
-                    y: collectionAxis.height
+                    y: collectionAxis.height * 0.5
                 }
             }
 
-            snapMode: PathView.SnapOneItem
-            highlightRangeMode: PathView.StrictlyEnforceRange
-            preferredHighlightBegin: 0.5
-            preferredHighlightEnd: 0.5
-
             focus: true
-            Keys.onUpPressed: decrementCurrentIndex()
-            Keys.onDownPressed: incrementCurrentIndex()
             Keys.onLeftPressed: currentItem.axis.decrementCurrentIndex()
             Keys.onRightPressed: currentItem.axis.incrementCurrentIndex()
             Keys.onPressed: {
@@ -105,39 +73,16 @@ FocusScope {
             Item {
                 property alias axis: gameAxis
                 readonly property var currentGame: axis.currentGame
-                readonly property bool currentRow: PathView.isCurrentItem
 
-                width: PathView.view.width
-                height: labelHeight + cellHeight
+                width: parent.width
+                height: cellHeight
 
-                visible: PathView.onPath
-                opacity: PathView.isCurrentItem ? 1.0 : 0.3
-                Behavior on opacity { NumberAnimation { duration: 150 } }
-
-                // Collection title centered
-                Text {
-                    text: modelData.name || modelData.shortName
-                    height: labelHeight
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    anchors.top: parent.top
-
-                    color: "white"
-                    font {
-                        pixelSize: labelFontSize
-                        family: "Roboto Light" // Uses fallback if loader fails
-                        bold: true
-                        capitalization: Font.AllUppercase
-                    }
-                }
-
-                // Horizontal Carousel (Static path for two centered items)
+                // Horizontal App List
                 PathView {
                     id: gameAxis
                     width: parent.width
                     height: cellHeight
-                    anchors.bottom: parent.bottom
+                    anchors.centerIn: parent
 
                     model: games
                     delegate: GameAxisCell {
@@ -145,18 +90,21 @@ FocusScope {
                         width: cellWidth
                         height: cellHeight
                         selected: PathView.isCurrentItem
-                        selectedRow: currentRow
+                        selectedRow: true
                     }
 
                     readonly property var currentGame: games.get(currentIndex)
 
-                    // Creates a path that sits perfectly centered on your Vizio
-                    pathItemCount: 3
+                    // Stagnant Math: Centers the items side-by-side without looping
+                    pathItemCount: 2
+                    interactive: false // Prevents mouse flicking/swapping behavior
+
                     path: Path {
-                        startX: (gameAxis.width * 0.5) - cellPaddedWidth
+                        // Math to place both items side-by-side in the center
+                        startX: (gameAxis.width * 0.5) - (cellPaddedWidth * 0.5)
                         startY: cellHeight * 0.5
                         PathLine {
-                            x: gameAxis.path.startX + (cellPaddedWidth * 2)
+                            x: gameAxis.path.startX + cellPaddedWidth
                             y: gameAxis.path.startY
                         }
                     }
