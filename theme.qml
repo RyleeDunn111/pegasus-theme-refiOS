@@ -12,7 +12,7 @@ FocusScope {
     readonly property real cellRatio: 16 / 9
     readonly property int cellHeight: vpx(200)
     readonly property int cellWidth: cellHeight * cellRatio
-    readonly property int cellSpacing: vpx(30)
+    readonly property int cellSpacing: vpx(40)
     readonly property int cellPaddedWidth: cellWidth + cellSpacing
 
     Rectangle {
@@ -43,7 +43,7 @@ FocusScope {
 
             width: parent.width
             height: cellHeight
-            anchors.centerIn: parent // This centers the whole menu on the screen
+            anchors.centerIn: parent
 
             model: api.collections
             delegate: collectionAxisDelegate
@@ -95,12 +95,12 @@ FocusScope {
 
                     readonly property var currentGame: games.get(currentIndex)
 
-                    // Stagnant Math: Centers the items side-by-side without looping
+                    // Stagnant Layout: 2 items centered
                     pathItemCount: 2
-                    interactive: false // Prevents mouse flicking/swapping behavior
+                    interactive: false
 
                     path: Path {
-                        // Math to place both items side-by-side in the center
+                        // FIX: Calculate start point so the center of the gap is the center of the screen
                         startX: (gameAxis.width * 0.5) - (cellPaddedWidth * 0.5)
                         startY: cellHeight * 0.5
                         PathLine {
@@ -111,6 +111,8 @@ FocusScope {
 
                     snapMode: PathView.SnapOneItem
                     highlightRangeMode: PathView.StrictlyEnforceRange
+
+                    // This ensures the navigation snaps exactly between the two centered points
                     preferredHighlightBegin: 0.5
                     preferredHighlightEnd: 0.5
                 }
