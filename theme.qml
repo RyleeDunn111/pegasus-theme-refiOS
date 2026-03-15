@@ -9,7 +9,7 @@ FocusScope {
     focus: true
 
     // 4K Optimized Sizes
-    readonly property real cellRatio: 16 / 9
+    readonly property real cellRatio: 1.0
     readonly property int cellHeight: vpx(250) // Nice and large for the Vizio
     readonly property int cellWidth: cellHeight * cellRatio
     readonly property int cellSpacing: vpx(80) // Wide gap between the two apps
