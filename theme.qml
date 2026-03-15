@@ -1,4 +1,4 @@
-// Pegasus Frontend - Flixnet theme (Kiosk Optimized)
+// Pegasus Frontend - Custom Kiosk Theme
 // Ultra-Minimalist centered layout for P-Stream and Moonlight
 
 import QtQuick 2.7
@@ -8,12 +8,11 @@ FocusScope {
     id: root
     focus: true
 
-    // Grid constants
+    // 4K Optimized Sizes
     readonly property real cellRatio: 16 / 9
-    readonly property int cellHeight: vpx(200)
+    readonly property int cellHeight: vpx(250) // Nice and large for the Vizio
     readonly property int cellWidth: cellHeight * cellRatio
-    readonly property int cellSpacing: vpx(40)
-    readonly property int cellPaddedWidth: cellWidth + cellSpacing
+    readonly property int cellSpacing: vpx(80) // Wide gap between the two apps
 
     Rectangle {
         anchors.fill: parent
@@ -30,91 +29,53 @@ FocusScope {
             }
         }
 
-        // Background art (No labels/details on top)
+        // Dimmed Background Art
         Screenshot {
-            game: collectionAxis.currentItem.currentGame
+            // Pulls the background of whichever app you are currently selecting
+            game: gameList.currentItem ? gameList.currentItem.gameData : null
             anchors.fill: parent
             opacity: 0.3
         }
 
-        // Main App Container - Centered Vertically and Horizontally
-        PathView {
-            id: collectionAxis
+        // The absolute simplest way to display a row of items
+        ListView {
+            id: gameList
+            focus: true
 
-            width: parent.width
+            // THE FIX: This makes the container exactly the width of your two apps.
+            // When combined with centerIn: parent, it creates an unbreakable dead-center alignment.
+            width: contentItem.childrenRect.width
             height: cellHeight
             anchors.centerIn: parent
 
-            model: api.collections
-            delegate: collectionAxisDelegate
+            orientation: ListView.Horizontal
+            spacing: cellSpacing
 
-            pathItemCount: 1
-            path: Path {
-                startX: collectionAxis.width * 0.5
-                startY: collectionAxis.height * 0.5
-                PathLine {
-                    x: collectionAxis.width * 0.5
-                    y: collectionAxis.height * 0.5
+            // THE FIX 2: Bypasses Collections entirely. Just gives us a flat list of your 2 apps.
+            model: api.allGames
+
+            delegate: Item {
+                id: delegateItem
+                width: cellWidth
+                height: cellHeight
+                property var gameData: modelData // Expose data to the Background Art
+
+                GameAxisCell {
+                    game: modelData
+                    anchors.fill: parent
+                    // ListView natively knows which item is highlighted
+                    selected: delegateItem.ListView.isCurrentItem
+                    selectedRow: true
                 }
             }
 
-            focus: true
-            Keys.onLeftPressed: currentItem.axis.decrementCurrentIndex()
-            Keys.onRightPressed: currentItem.axis.incrementCurrentIndex()
+            // Interaction Settings
+            interactive: false // Completely disables scrolling/mouse dragging
+            keyNavigationWraps: true // Pressing right on Moonlight wraps back to P-Stream instantly
+
             Keys.onPressed: {
-                if (!event.isAutoRepeat && api.keys.isAccept(event))
-                    currentItem.currentGame.launch();
-            }
-        }
-
-        Component {
-            id: collectionAxisDelegate
-
-            Item {
-                property alias axis: gameAxis
-                readonly property var currentGame: axis.currentGame
-
-                width: parent.width
-                height: cellHeight
-
-                // Horizontal App List
-                PathView {
-                    id: gameAxis
-                    width: parent.width
-                    height: cellHeight
-                    anchors.centerIn: parent
-
-                    model: games
-                    delegate: GameAxisCell {
-                        game: modelData
-                        width: cellWidth
-                        height: cellHeight
-                        selected: PathView.isCurrentItem
-                        selectedRow: true
-                    }
-
-                    readonly property var currentGame: games.get(currentIndex)
-
-                    // Stagnant Layout: 2 items centered
-                    pathItemCount: 2
-                    interactive: false
-
-                    path: Path {
-                        // FIX: Calculate start point so the center of the gap is the center of the screen
-                        startX: (gameAxis.width * 0.5) - (cellPaddedWidth * 0.5)
-                        startY: cellHeight * 0.5
-                        PathLine {
-                            x: gameAxis.path.startX + cellPaddedWidth
-                            y: gameAxis.path.startY
-                        }
-                    }
-
-                    snapMode: PathView.SnapOneItem
-                    highlightRangeMode: PathView.StrictlyEnforceRange
-
-                    // This ensures the navigation snaps exactly between the two centered points
-                    preferredHighlightBegin: 0.5
-                    preferredHighlightEnd: 0.5
+                if (!event.isAutoRepeat && api.keys.isAccept(event)) {
+                    currentItem.gameData.launch();
                 }
             }
         }
