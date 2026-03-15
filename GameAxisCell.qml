@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.7  // <-- FIXED: Updated to 2.7 to support mipmap
 import QtGraphicalEffects 1.12
 
 Item {
@@ -7,14 +7,14 @@ Item {
     property bool selected: false
     property bool selectedRow: false
 
-    // 1. The Custom Console Glow (Matches your web app!)
+    // 1. The Custom Console Glow
     Rectangle {
         anchors.fill: parent
-        anchors.margins: vpx(-6) // Pushes the border slightly outside the icon
+        anchors.margins: vpx(-6)
         color: "transparent"
         border.color: selected ? "#8183f9" : "transparent"
         border.width: vpx(6)
-        radius: vpx(24) // Matches the rounded corners of the icon below
+        radius: vpx(24)
 
         // Smooth fade in/out when moving between apps
         Behavior on border.color { ColorAnimation { duration: 150 } }
@@ -25,14 +25,14 @@ Item {
         id: appIcon
         anchors.fill: parent
 
-        // Explicitly pull the icon we defined in metadata.txt
-        source: game && game.assets.icon ? game.assets.icon : ""
+        // <-- FIXED: Now looks for 'boxFront' to match the metadata.txt update
+        source: game && game.assets.boxFront ? game.assets.boxFront : ""
 
         fillMode: Image.PreserveAspectFit
         smooth: true
         mipmap: true
 
-        // Optional: Clips the icon into a smooth rounded square (Apple TV style)
+        // Clips the icon into a smooth rounded square (Apple TV style)
         layer.enabled: true
         layer.effect: OpacityMask {
             maskSource: Rectangle {
@@ -43,6 +43,6 @@ Item {
         }
     }
 
-    // Ensure the size stays completely static (no bouncing)
+    // Ensure the size stays completely static
     scale: 1.0
 }
